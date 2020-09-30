@@ -23,3 +23,5 @@ _tmp
 node_modules/*
 api_requests/*
 *.sqlite
+venv/
+.idea/

@@ -1,11 +1,8 @@
 from flask import Flask, render_template
 
-# from database import Base, Url, session, engine, s
 from database import return_db
 
 app = Flask(__name__)
-# app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///orm_in_detail.sqlite'
-# db = SQLAlchemy(app)
 
 
 @app.route('/hello/')

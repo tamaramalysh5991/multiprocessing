@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 
 import logging
+import aiohttp
+import asyncio
 import multiprocessing as mp
 import re
 import sys
@@ -20,7 +22,7 @@ regex = "(.*"+str(DOMAIN)+"\.com.*)|(^\/[a-z].*$)"
 
 check_urls = set()
 m = mp.Manager()  # Manager of multiprocessing
-q = m.JoinableQueue()  # queue of manager
+q = []  # queue of manager
 urls_save = m.dict()  # Shared list contain url with flag 'True'
 executed = {}  # task compilte
 non_executed = {}  # task don't executed
@@ -51,7 +53,7 @@ class Task(object):
         result = process(self)
         if result:
             self.success = True
-            q.task_done()
+            # q.task_done()
             executed[self] = self.url
             self.add_queue(result)
             return self.url
@@ -61,10 +63,9 @@ class Task(object):
 
     def add_queue(self, urls):
         """Add new url in queue"""
-        # [q.put(url) for url in result if url]
         for url in urls:
             if url not in check_urls:
-                q.put(url)
+                q.append(url)
 
     def add_db(self):
         """Add Task in database if flag is positive"""
@@ -74,7 +75,12 @@ class Task(object):
         return 'Not positive'
 
 
-def get_soup(url):
+async def fetch(session, url):
+    async with session.get(url) as response:
+        return await response.text()
+
+
+async def get_soup(url):
     """This method allow get a html body of url.
     Args:
         url (str): current link.
@@ -85,11 +91,13 @@ def get_soup(url):
         False, None : returns if status code is not 200
     """
     try:
-        r = requests.get(url, headers=hundlers.USER_AGENT, timeout=4)
-        if r.status_code != 200:
-            return False, None
-        soup = BeautifulSoup(r.text, "lxml")
-        return soup, r
+        # r = requests.get(url, headers=hundlers.USER_AGENT, timeout=4)
+        # if r.status_code != 200:
+        #     return False, None
+        async with aiohttp.ClientSession() as session:
+            html = await fetch(session, url)
+        soup = BeautifulSoup(html, "lxml")
+        return soup, url
     except (requests.ConnectionError, requests.Timeout, UnicodeError,
             requests.RequestException, Exception) as e:
         print(str(e))
@@ -105,15 +113,15 @@ def process(task):
         find_urls(set): contain all internal domain URLs.
     """
     find_urls = set()
-    soup, r = get_soup(task.url)
+    soup, url = get_soup(task.url)
     print('working url page', task.url)
     if not soup or soup is None:
-        return(None)
+        return None
     pos = positive(soup=soup, task=task)
     print(pos)
     for tag in soup.findAll('a', href=re.compile(regex)):
         try:
-            link = urljoin(r.url, tag['href'])
+            link = urljoin(url, tag['href'])
             find_urls.add(link)
         except ValueError as e:
             continue
@@ -139,8 +147,8 @@ def positive(soup, task):
         task.positive = True
         task.title = title
         task.add_db()
-        return('Find pattern')
-    return('Not found')
+        return 'Find pattern'
+    return 'Not found'
 
 
 def check_for_tasks():
@@ -149,7 +157,7 @@ def check_for_tasks():
         list_tasks(list): list of current task
     """
     list_tasks = []
-    q_size = q.qsize() if q.qsize() < 400 else 200
+    q_size = len(q) if len(q) < 400 else 200
     for __ in range(q_size):
         url = q.get()
         task = Task(url=url)
@@ -161,7 +169,7 @@ def check_for_tasks():
 def run(processes):
     """The main loop of tasks where everything happens.
     Args:
-        prosseses(int) : number of workers
+        processes(int) : number of workers
     """
     while True:
         tasks = check_for_tasks()
@@ -186,5 +194,5 @@ if __name__ == '__main__':
     URL = sys.argv[1]
     processes = 25
     DOMAIN = tldextract.extract(URL)
-    q.put(URL)
+    q.append(URL)
     run(processes)
