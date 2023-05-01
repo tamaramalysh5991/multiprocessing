@@ -5,24 +5,60 @@
 #    pip-compile --output-file requirements.txt requirements.in
 #
 aiohttp==3.3.2
-async-timeout==3.0.0      # via aiohttp
-attrs==18.1.0             # via aiohttp
+    # via -r requirements.in
+async-timeout==3.0.0
+    # via aiohttp
+attrs==18.1.0
+    # via aiohttp
 beautifulsoup4==4.6.0
-certifi==2018.4.16        # via requests
-chardet==3.0.4            # via aiohttp, requests
-click==6.7                # via flask
-flask==1.0.2
-idna==2.7                 # via requests, tldextract, yarl
-itsdangerous==0.24        # via flask
-jinja2==2.10              # via flask
+    # via -r requirements.in
+blinker==1.6.2
+    # via flask
+certifi==2018.4.16
+    # via requests
+chardet==3.0.4
+    # via
+    #   aiohttp
+    #   requests
+click==8.1.3
+    # via flask
+flask==2.3.2
+    # via -r requirements.in
+idna==2.7
+    # via
+    #   requests
+    #   tldextract
+    #   yarl
+itsdangerous==2.1.2
+    # via flask
+jinja2==3.1.2
+    # via flask
 lxml==4.2.3
-markupsafe==1.0           # via jinja2
-multidict==4.3.1          # via aiohttp, yarl
-requests-file==1.4.3      # via tldextract
+    # via -r requirements.in
+markupsafe==2.1.2
+    # via
+    #   jinja2
+    #   werkzeug
+multidict==4.3.1
+    # via
+    #   aiohttp
+    #   yarl
 requests==2.19.1
-six==1.11.0               # via requests-file
+    # via
+    #   -r requirements.in
+    #   requests-file
+    #   tldextract
+requests-file==1.4.3
+    # via tldextract
+six==1.11.0
+    # via requests-file
 sqlalchemy==1.2.10
+    # via -r requirements.in
 tldextract==2.2.0
-urllib3==1.23             # via requests
-werkzeug==0.14.1          # via flask
-yarl==1.2.6               # via aiohttp
+    # via -r requirements.in
+urllib3==1.23
+    # via requests
+werkzeug==2.3.3
+    # via flask
+yarl==1.2.6
+    # via aiohttp
